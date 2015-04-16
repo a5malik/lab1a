@@ -10,7 +10,7 @@ var colorsArray = [];
 var curtheta = 0;
 var m1,m2,m3,m4,m5,m6,m7,m8;
 
-var vertexColors = [
+var vertexColors = [ // this contains the 9 colors i plan to use.
     vec4( 0.0, 0.0, 0.0, 1.0 ),  // black
     vec4( 1.0, 0.0, 0.0, 1.0 ),  // red
     vec4( 1.0, 1.0, 0.0, 1.0 ),  // yellow
@@ -23,7 +23,7 @@ var vertexColors = [
 	
 ];
 
-var cube = function(center)
+var cube = function(center) //this function returns the 8 vertices of the cube located at 'center'
 {
 	var x = center[0],y = center[1],z = center[2];
 	var vertices = 
@@ -61,7 +61,7 @@ cameraMatrix = mult(translate(0,0,-50), cameraMatrix);
 
 var cBuffer;
 
-function liner(a,b,vertices,conly)
+function liner(a,b,vertices,conly) // this function pushes the 2 points that make up a line into pointsarray and colorsarray.
 {	
 if(!conly)
 {
@@ -72,8 +72,12 @@ if(!conly)
 	colorsArray.push(vertexColors[8]);
 }
 
-function colorCube(center,col,conly)
+function colorCube(center,col,conly) 
 {
+	/*this function pushes the vertices into points array that make up a cube in an 
+	order that can be drawn using a single triangle strip, and then pushes vertices
+	to make a white boundary of the cube, and then pushes the 4 points that make up
+	the cross hair*/
 	var vertices = cube(center);
     
 	if(!conly)
@@ -99,7 +103,7 @@ function colorCube(center,col,conly)
 	for(var i = 0; i < 17;i++)
 		colorsArray.push(vertexColors[col]);
 	linecube([0,0,0],conly);
-	if(!conly)
+	if(!conly) //if i want to update only the color buffer, conly is true
 	{
 	pointsArray.push(vec4(-4.0,0,-5,1.0));
 	pointsArray.push(vec4(4.0,0,-5,1.0));
@@ -109,7 +113,7 @@ function colorCube(center,col,conly)
 	for(var i = 0; i < 4;i++)
 		colorsArray.push(vertexColors[8]);
 }
-var list = [
+var list = [               // this list is for use in the translate matrix, tells me the center of each cube to translate to.
 	[10.0,10.0,10.0],
 	[-10.0,10.0,10.0],
 	[10.0,-10.0,10.0],
@@ -119,8 +123,10 @@ var list = [
 	[10.0,-10.0,-10.0],
 	[-10.0,-10.0,-10.0]
 	];
-function linecube(center,conly)
+function linecube(center,conly)  
 {
+	/*this function pushes vertices in an order that makes a 
+	   white boundary of a cube located at 'center'*/
 	var vertices = cube(center);
 	liner(1,2,vertices,conly);
 	liner(1,5,vertices,conly);
@@ -158,7 +164,8 @@ window.onload = function init() {
     var program = initShaders( gl, "vertex-shader", "fragment-shader" );
     gl.useProgram( program );
     
-	colorCube([0.0,0.0,0.0],col_off,false);//this will push the vertices of one cube centered at the origin into the pointsArray
+	colorCube([0.0,0.0,0.0],col_off,false);//this will push the locations and colors of one cube centered at 0,0,0 into the 
+	//points array and colors array.
     
     cBuffer = gl.createBuffer();
     gl.bindBuffer( gl.ARRAY_BUFFER, cBuffer );
@@ -183,7 +190,7 @@ window.onload = function init() {
 // buttons for viewing parameters
 	window.addEventListener("keydown",function() {
 		switch(event.keyCode) {
-			case 67:                           //'c'
+			case 67:                           //'c' - this updates the color buffer by cycling through colors with an incremented offset.
 				col_off = (col_off + 1)%8;
 				colorsArray = [];
 				cubeliner(true);
@@ -249,7 +256,7 @@ window.onload = function init() {
 }
 
 var mvm;
-var t = 0;
+var t = 0; //this is the time variable, that i use for periodically growing and shrinking the cubes
 var sc;
 var render = function(){
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -258,23 +265,22 @@ var render = function(){
     gl.uniformMatrix4fv( modelViewMatrixLoc, false, flatten(modelViewMatrix) );
     gl.uniformMatrix4fv( projectionMatrixLoc, false, flatten(projectionMatrix) );
 	gl.uniformMatrix4fv(cameraMatrixLoc, false, flatten(cameraMatrix) );
-	sc = 1+0.1*Math.cos(radians(t)); // this is my scaling factor
-	modelViewMatrix = mult(rotate(6,[1,0,0]),modelViewMatrix);
-	// I instance each cube from the same data and translate each to the required position.
-    for(var i = 0; i < 8; i++)
+	sc = 1+0.1*Math.cos(radians(t)); // this is my scaling factor, which i use in the scale matrix . 't' is for time.
+	modelViewMatrix = mult(rotate(6,[1,0,0]),modelViewMatrix); // i rotate the cubes by 6 degrees each frame.
+    for(var i = 0; i < 8; i++) //here i loop through the same vertex data 8 times to translate and scale them seperately for each 8 cubes
 	{
 		gl.uniformMatrix4fv( modelViewMatrixLoc, false, 
-		flatten((mult(translate(list[i][0],list[i][1],list[i][2]),mult(scale(sc,sc,sc),modelViewMatrix)))) );
-		colorsArray = [];
-		colorCube([0.0,0.0,0.0],(col_off+i)%8,true);
+		flatten((mult(translate(list[i][0],list[i][1],list[i][2]),mult(scale(sc,sc,sc),modelViewMatrix)))) ); //scale+translate
+		colorsArray = [];//refresh the color array for each cube.
+		colorCube([0.0,0.0,0.0],(col_off+i)%8,true);//each is drawn with a different color.
 		gl.bindBuffer( gl.ARRAY_BUFFER, cBuffer );
 		gl.bufferData( gl.ARRAY_BUFFER, flatten(colorsArray), gl.DYNAMIC_DRAW );
-		gl.drawArrays( gl.TRIANGLE_STRIP, 0,17 );
-		gl.drawArrays(gl.LINES,17,24);
-	gl.drawArrays(gl.LINES,17,24);
+		gl.drawArrays( gl.TRIANGLE_STRIP, 0,17 ); //draw the cube using one triangle strip
+		gl.drawArrays(gl.LINES,17,24);//draw the white boundary.
+	//gl.drawArrays(gl.LINES,17,24);
 	}
-	t+=(2*Math.PI/5);
-	if(cross)
+	t+=(2*Math.PI/5); // change the time 't', so that the period is 5 frames.
+	if(cross) // if cross hair is to be drawn..
 	{
 		gl.uniformMatrix4fv( projectionMatrixLoc, false, flatten(ortho(-30,30,-30,30,0,100)) );
 		gl.uniformMatrix4fv( modelViewMatrixLoc, false, flatten(mat4()));
