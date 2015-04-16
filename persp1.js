@@ -1,3 +1,5 @@
+//I have done extra credit part 1 and part 2 
+
 var canvas;
 var gl;
 
@@ -156,7 +158,7 @@ window.onload = function init() {
     var program = initShaders( gl, "vertex-shader", "fragment-shader" );
     gl.useProgram( program );
     
-	colorCube([0.0,0.0,0.0],col_off,false);
+	colorCube([0.0,0.0,0.0],col_off,false);//this will push the vertices of one cube centered at the origin into the pointsArray
     
     cBuffer = gl.createBuffer();
     gl.bindBuffer( gl.ARRAY_BUFFER, cBuffer );
@@ -198,7 +200,7 @@ window.onload = function init() {
 				cameraMatrix = mult(translate(0,+0.25,0), cameraMatrix);
 				
 				break;
-			case  37:
+			case  37://left
 				
 				cameraMatrix = mult(rotate(-1,[0,1.0,0]), cameraMatrix);
 				
@@ -216,29 +218,29 @@ window.onload = function init() {
 				cameraMatrix = mult(translate(0,0,-0.25),cameraMatrix);
 				
 				break;
-			case 74:
+			case 74://left translate
 				cameraMatrix = mult(translate(0.25,0,0),cameraMatrix);
 				
 				break;
-			case 75:
+			case 75: // right translate
 				cameraMatrix = mult(translate(-0.25,0,0),cameraMatrix);
 				
 				break;
-			case 82:
+			case 82: //reset
 				cameraMatrix = mat4();
 				cameraMatrix = mult(translate(0,0,-50),cameraMatrix);
 				fovy = 60.0;
 				
 				break;
-			case 187:
+			case 187: //'+' key
 				if(cross)
 					cross = false;
 				else cross = true;
 				break;
-			case 78:
+			case 78: //'n'
 				fovy*=0.9;
 				break;
-			case 87:
+			case 87://'w'
 				fovy*=1.1;
 				break;
 		}
@@ -256,8 +258,9 @@ var render = function(){
     gl.uniformMatrix4fv( modelViewMatrixLoc, false, flatten(modelViewMatrix) );
     gl.uniformMatrix4fv( projectionMatrixLoc, false, flatten(projectionMatrix) );
 	gl.uniformMatrix4fv(cameraMatrixLoc, false, flatten(cameraMatrix) );
-	sc = 1+0.1*Math.cos(radians(t));
+	sc = 1+0.1*Math.cos(radians(t)); // this is my scaling factor
 	modelViewMatrix = mult(rotate(6,[1,0,0]),modelViewMatrix);
+	// I instance each cube from the same data and translate each to the required position.
     for(var i = 0; i < 8; i++)
 	{
 		gl.uniformMatrix4fv( modelViewMatrixLoc, false, 
