@@ -252,7 +252,8 @@ window.onload = function init() {
 				break;
 		}
 	});
-    render(); 
+    setInterval(render,1000/60); 
+	//render();
 }
 
 var mvm;
@@ -287,5 +288,5 @@ var render = function(){
 		gl.uniformMatrix4fv( cameraMatrixLoc, false, flatten(mat4()));
 		gl.drawArrays(gl.LINES,41,4);
 	}
-    requestAnimFrame(render);
+   //requestAnimFrame(render);
 }
